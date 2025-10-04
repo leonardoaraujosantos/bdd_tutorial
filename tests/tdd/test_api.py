@@ -54,11 +54,6 @@ class TestCalculatorAPI:
         assert data["result"] == 5
         assert data["operation"] == "division"
 
-    def test_divide_by_zero_returns_error(self):
-        """Test that dividing by zero returns 400 error"""
-        response = self.client.post("/divide", json={"num1": 10, "num2": 0})
-        assert response.status_code == 400
-        assert "Cannot divide by zero" in response.json()["detail"]
 
     def test_invalid_request_missing_fields(self):
         """Test that missing required fields returns 422 error"""

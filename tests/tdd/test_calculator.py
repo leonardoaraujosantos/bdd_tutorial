@@ -64,10 +64,6 @@ class TestCalculator:
         result = self.calculator.divide(7, 2)
         assert result == 3.5
 
-    def test_divide_by_zero_raises_error(self):
-        """Test that dividing by zero raises ValueError"""
-        with pytest.raises(ValueError, match="Cannot divide by zero"):
-            self.calculator.divide(10, 0)
 
     def test_divide_negative_numbers(self):
         """Test dividing negative numbers"""

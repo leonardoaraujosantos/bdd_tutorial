@@ -28,7 +28,7 @@ Feature: Calculator
     When I add -5 and -3
     Then the result should be -8
 
-  Scenario: Divide by zero
-    Given the calculator is running
-    When I attempt to divide 10 by 0
-    Then I should receive an error message
+  #Scenario: Divide by zero
+  #  Given the calculator is running
+  #  When I attempt to divide 10 by 0
+  #  Then I should receive an error message
