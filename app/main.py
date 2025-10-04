@@ -17,14 +17,10 @@ if sentry_dsn:
         environment=os.getenv("SENTRY_ENVIRONMENT", "development"),
         # Add data like request headers and IP for users
         send_default_pii=True,
-        # Enable sending logs to Sentry
-        enable_logs=True,
         # Set traces_sample_rate to 1.0 to capture 100% of transactions for tracing
         traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "1.0")),
         # Set profile_session_sample_rate to 1.0 to profile 100% of sessions
-        profile_session_sample_rate=float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "1.0")),
-        # Set profile_lifecycle to "trace" to automatically run profiler on transactions
-        profile_lifecycle="trace",
+        profiles_sample_rate=float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "1.0")),
     )
     logger.info("Sentry initialized successfully")
 else:
@@ -92,20 +88,22 @@ async def trigger_error():
 async def test_logging():
     """
     Test endpoint to verify Sentry logging integration
+    Logs are automatically captured by Sentry
     """
-    sentry_sdk.logger.info('This is an info log message sent directly to Sentry')
-    sentry_sdk.logger.warning('This is a warning message')
-    logger.info('This info log will be sent to Sentry via Python logging')
-    logger.warning('User attempted an operation')
+    # Sentry automatically captures Python logging
+    logger.info('This info log will be sent to Sentry')
+    logger.warning('User attempted an operation - warning level')
     logger.error('This is a test error log')
 
+    # You can also capture messages directly
+    sentry_sdk.capture_message("Direct message to Sentry", level="info")
+
     return {
-        "message": "Logs sent to Sentry",
+        "message": "Logs sent to Sentry successfully",
         "logs": [
-            "Info log via sentry_sdk.logger",
-            "Warning via sentry_sdk.logger",
             "Info via Python logging",
             "Warning via Python logging",
-            "Error via Python logging"
+            "Error via Python logging",
+            "Direct message via sentry_sdk.capture_message"
         ]
     }
