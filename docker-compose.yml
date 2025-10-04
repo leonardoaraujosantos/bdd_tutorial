@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # Good Calculator API
+  calculator-api:
+    build: .
+    container_name: calculator-api
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./app:/app/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Bad Calculator API (for demonstration only - DO NOT USE!)
+  bad-calculator-api:
+    build: .
+    container_name: bad-calculator-api
+    ports:
+      - "8001:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./app:/app/app
+    command: uvicorn app.bad_main:app --host 0.0.0.0 --port 8000 --reload
+    profiles:
+      - demo
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

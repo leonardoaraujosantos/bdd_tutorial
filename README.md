@@ -1,6 +1,61 @@
 # Calculator API - BDD/TDD Tutorial
 
-A demonstration project showing the difference between good and bad code, and how BDD tests can pass even with terrible implementations.
+A comprehensive demonstration project showing the difference between good and bad code, and how BDD tests can pass even with terrible implementations. This project teaches the importance of using multiple quality assurance techniques: BDD, TDD, and static analysis tools like Semgrep.
+
+## 📚 What is BDD, TDD, and Semgrep?
+
+### Behavior-Driven Development (BDD)
+
+**BDD** is a software development approach that focuses on the **behavior** of the application from the user's perspective.
+
+- **What it is**: Write tests in plain language (Gherkin) that describe what the system should do
+- **Focus**: External behavior and business requirements
+- **Format**: Given-When-Then scenarios
+- **Example**:
+  ```gherkin
+  Scenario: Add two numbers
+    Given the calculator is running
+    When I add 2 and 3
+    Then the result should be 5
+  ```
+- **Limitation**: ⚠️ BDD only validates behavior, NOT code quality or security!
+
+### Test-Driven Development (TDD)
+
+**TDD** is a development practice where you write tests **before** writing the actual code.
+
+- **What it is**: Write failing tests first, then write code to make them pass
+- **Focus**: Implementation quality and code design
+- **Process**:
+  1. 🔴 Red - Write a failing test
+  2. 🟢 Green - Write minimal code to pass
+  3. 🔵 Refactor - Improve code quality
+- **Benefits**:
+  - Better code design
+  - Higher test coverage
+  - Easier to refactor
+  - Exposes poor design early
+
+### Semgrep - Static Analysis Security Tool
+
+**Semgrep** is a fast, open-source static analysis tool that finds bugs and enforces code standards.
+
+- **What it is**: Scans code for security vulnerabilities, bugs, and anti-patterns
+- **How it works**: Uses pattern matching to find dangerous code
+- **What it detects**:
+  - Security vulnerabilities (SQL injection, XSS, code injection)
+  - Hardcoded secrets and credentials
+  - Dangerous functions (`eval()`, `exec()`, `pickle.load()`)
+  - Code quality issues
+- **Why it matters**: Catches what tests miss!
+
+**Example Semgrep rule:**
+```yaml
+- id: dangerous-eval-usage
+  pattern: eval(...)
+  message: "Dangerous use of eval() - allows arbitrary code execution"
+  severity: ERROR
+```
 
 ## Project Structure
 
@@ -83,7 +138,27 @@ Semgrep will detect:
 - Insecure deserialization
 - And more!
 
-## Installation
+## 🚀 Quick Start
+
+### Option 1: Docker (Recommended)
+
+```bash
+# Run the good calculator API
+docker-compose up calculator-api
+
+# Access at: http://localhost:8000
+# API docs at: http://localhost:8000/docs
+```
+
+To run the bad calculator (for educational purposes only):
+```bash
+# Run with the 'demo' profile
+docker-compose --profile demo up bad-calculator-api
+
+# Access at: http://localhost:8001
+```
+
+### Option 2: Local Installation
 
 ```bash
 # Create virtual environment
@@ -92,18 +167,30 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
-```
 
-## Running the Application
-
-### Good Implementation ✅
-```bash
+# Run the good implementation
 uvicorn app.main:app --reload
+
+# Access at: http://localhost:8000
 ```
 
-### Bad Implementation ❌ (DO NOT USE!)
+## 🐳 Docker Commands
+
 ```bash
-uvicorn app.bad_main:app --reload
+# Build the image
+docker-compose build
+
+# Run in background
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop containers
+docker-compose down
+
+# Run tests in container
+docker-compose run calculator-api pytest
 ```
 
 ## Running Tests
@@ -129,9 +216,36 @@ pytest --cov=app --cov-report=html
 open htmlcov/index.html
 ```
 
-### Security Scan
+### Security Scan with Semgrep
+
 ```bash
+# Install Semgrep
+pip install semgrep
+
+# Run security scan
 semgrep --config=.semgrep.yml app/
+
+# Output results to JSON
+semgrep --config=.semgrep.yml --json app/ > security-report.json
+
+# Scan only bad code to see vulnerabilities
+semgrep --config=.semgrep.yml app/bad_calculator.py
+```
+
+**Expected output for bad_calculator.py:**
+```
+Findings:
+  app/bad_calculator.py
+     dangerous-eval-usage
+        Dangerous use of eval() - allows arbitrary code execution
+
+     dangerous-exec-usage
+        Dangerous use of exec() - allows arbitrary code execution
+
+     shell-injection-subprocess
+        Shell injection vulnerability - subprocess with shell=True
+
+     [... and more security issues]
 ```
 
 ## CI/CD Pipeline
@@ -174,19 +288,116 @@ The GitHub Actions workflow runs:
 - ❌ Poor error handling
 - ❌ Hard to test safely
 
-## Testing Philosophy
+## 🧪 How to Use This Project for Learning
+
+### Step 1: Run BDD Tests
+```bash
+pytest tests/bdd/ -v
+```
+**Observe**: Both good and bad calculator BDD tests PASS! ✅
+
+### Step 2: Run TDD Tests
+```bash
+pytest tests/tdd/ -v
+```
+**Observe**: Notice how tests for bad code are harder to write and some are skipped
+
+### Step 3: Run Semgrep
+```bash
+semgrep --config=.semgrep.yml app/
+```
+**Observe**: Semgrep finds critical vulnerabilities in bad_calculator.py! 🚨
+
+### Step 4: Compare Code Quality
+- Open `app/calculator.py` (good code) - clean and simple
+- Open `app/bad_calculator.py` (bad code) - full of vulnerabilities
+
+### Key Lesson
+**BDD tests pass for both!** But only Semgrep and careful TDD expose the bad code.
+
+## 📊 Testing Philosophy
 
 ```
-Good Code → Easy Tests → High Confidence
-Bad Code → Hard Tests → False Confidence (tests pass but code is dangerous!)
+Good Code → Easy Tests → High Confidence ✅
+Bad Code → Hard Tests → False Confidence ❌ (tests pass but code is dangerous!)
 ```
 
-This project proves you need **multiple layers of quality assurance**:
-- BDD (behavior correctness)
-- TDD (implementation quality)
-- Static analysis (security)
-- Code review (design & maintainability)
+### The Three Pillars of Quality
 
-## License
+1. **BDD** 🎭 - Validates external behavior
+   - ✅ Ensures features work as expected
+   - ❌ Doesn't catch implementation flaws
 
-MIT - Educational purposes only. DO NOT use bad_calculator.py in production!
+2. **TDD** 🔬 - Validates internal quality
+   - ✅ Exposes design problems
+   - ✅ Hard to test = bad design
+   - ❌ Can't catch all security issues
+
+3. **Static Analysis** 🔒 - Validates security
+   - ✅ Finds vulnerabilities
+   - ✅ Detects dangerous patterns
+   - ✅ Catches what tests miss
+
+**Conclusion**: You need **ALL THREE** for production-ready code!
+
+## 📖 API Documentation
+
+Once running, visit:
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+### Available Endpoints
+
+#### Good Calculator API (Port 8000)
+- `POST /add` - Add two numbers
+- `POST /subtract` - Subtract two numbers
+- `POST /multiply` - Multiply two numbers
+- `POST /divide` - Divide two numbers
+
+#### Example Request
+```bash
+curl -X POST "http://localhost:8000/add" \
+  -H "Content-Type: application/json" \
+  -d '{"num1": 5, "num2": 3}'
+```
+
+#### Example Response
+```json
+{
+  "result": 8.0,
+  "operation": "addition"
+}
+```
+
+## 🎯 Project Goals
+
+This project demonstrates:
+1. ✅ How to write BDD tests using pytest-bdd and Gherkin
+2. ✅ How to write TDD tests for FastAPI applications
+3. ✅ How BDD can pass with terrible code quality
+4. ✅ How bad code makes testing harder
+5. ✅ How to use Semgrep to find security vulnerabilities
+6. ✅ Why you need multiple quality assurance techniques
+
+## 🤝 Contributing
+
+This is an educational project. Feel free to:
+- Add more bad code examples
+- Create additional Semgrep rules
+- Improve documentation
+- Add more test scenarios
+
+## 📝 License
+
+MIT - Educational purposes only. **DO NOT use bad_calculator.py in production!**
+
+## ⚠️ Security Warning
+
+The `bad_calculator.py` file contains **intentional security vulnerabilities** for educational purposes:
+- Remote Code Execution (RCE)
+- SQL Injection patterns
+- Command Injection
+- Hardcoded secrets
+- Insecure deserialization
+
+**Never deploy this code to production!** It serves only as a teaching tool to demonstrate what NOT to do.
