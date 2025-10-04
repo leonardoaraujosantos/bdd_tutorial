@@ -150,6 +150,18 @@ docker-compose up calculator-api
 # API docs at: http://localhost:8000/docs
 ```
 
+**With Sentry monitoring:**
+```bash
+# Copy environment file
+cp .env.example .env
+
+# Edit .env and add your Sentry DSN
+# SENTRY_DSN=https://your-key@o0.ingest.sentry.io/0
+
+# Run with Sentry enabled
+docker-compose up calculator-api
+```
+
 To run the bad calculator (for educational purposes only):
 ```bash
 # Run with the 'demo' profile
@@ -168,7 +180,12 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
+# (Optional) Configure Sentry
+cp .env.example .env
+# Edit .env and add your Sentry DSN
+
 # Run the good implementation
+export SENTRY_DSN="your-sentry-dsn"  # Optional
 uvicorn app.main:app --reload
 
 # Access at: http://localhost:8000
@@ -340,6 +357,83 @@ Bad Code → Hard Tests → False Confidence ❌ (tests pass but code is dangero
 
 **Conclusion**: You need **ALL THREE** for production-ready code!
 
+## 🔍 Sentry Integration - Error Monitoring & Performance
+
+This project includes full Sentry integration for:
+- **Error Monitoring**: Automatically track all exceptions
+- **Performance Monitoring**: Track request performance and database queries
+- **Profiling**: CPU profiling for performance optimization
+- **Logging**: Send application logs to Sentry
+
+### Setup Sentry
+
+1. **Create a Sentry Account**: Go to [sentry.io](https://sentry.io) and create a free account
+2. **Create a Project**: Create a new Python/FastAPI project
+3. **Get your DSN**: Copy your project's DSN (Data Source Name)
+4. **Configure the application**:
+
+```bash
+# Copy the example env file
+cp .env.example .env
+
+# Edit .env and add your Sentry DSN
+SENTRY_DSN=https://your-key@o0.ingest.sentry.io/0
+SENTRY_ENVIRONMENT=development
+SENTRY_TRACES_SAMPLE_RATE=1.0
+SENTRY_PROFILES_SAMPLE_RATE=1.0
+```
+
+### Test Sentry Integration
+
+#### 1. Test Error Tracking
+```bash
+# Trigger an intentional error
+curl http://localhost:8000/sentry-debug
+```
+This will create a ZeroDivisionError that gets sent to Sentry. Check your Sentry dashboard to see the error!
+
+#### 2. Test Logging
+```bash
+# Send test logs to Sentry
+curl http://localhost:8000/sentry-log-test
+```
+This will send various log levels (info, warning, error) to Sentry. Check the "Logs" section in Sentry.
+
+#### 3. Test Performance Monitoring
+```bash
+# Make normal API requests
+curl -X POST "http://localhost:8000/add" \
+  -H "Content-Type: application/json" \
+  -d '{"num1": 5, "num2": 3}'
+```
+Check the "Performance" section in Sentry to see transaction traces!
+
+### What Gets Sent to Sentry
+
+✅ **Errors**: All unhandled exceptions
+✅ **Performance**: Request duration, database queries
+✅ **Logs**: Application logs (info, warning, error)
+✅ **Context**: Request headers, user data, environment info
+✅ **Stack Traces**: Full stack traces with local variables
+
+### Sentry Configuration Options
+
+The SDK is configured with:
+- `send_default_pii=True`: Includes request headers and IP addresses
+- `enable_logs=True`: Sends Python logs to Sentry
+- `traces_sample_rate=1.0`: Captures 100% of transactions (reduce in production)
+- `profile_session_sample_rate=1.0`: Profiles 100% of sessions
+- `profile_lifecycle="trace"`: Auto-profile during transactions
+
+### Sentry in Production
+
+For production, adjust sample rates to reduce data volume:
+
+```python
+traces_sample_rate=0.1  # 10% of transactions
+profile_session_sample_rate=0.1  # 10% of sessions
+```
+
 ## 📖 API Documentation
 
 Once running, visit:
@@ -352,7 +446,9 @@ Once running, visit:
 - `POST /add` - Add two numbers
 - `POST /subtract` - Subtract two numbers
 - `POST /multiply` - Multiply two numbers
-- `POST /divide` - Divide two numbers
+- `POST /divide` - Divide two numbers (with error handling)
+- `GET /sentry-debug` - Test Sentry error tracking
+- `GET /sentry-log-test` - Test Sentry logging
 
 #### Example Request
 ```bash
@@ -369,6 +465,14 @@ curl -X POST "http://localhost:8000/add" \
 }
 ```
 
+#### Test Division by Zero (Error Tracking)
+```bash
+curl -X POST "http://localhost:8000/divide" \
+  -H "Content-Type: application/json" \
+  -d '{"num1": 10, "num2": 0}'
+```
+This error will be logged to Sentry with full context!
+
 ## 🎯 Project Goals
 
 This project demonstrates:
@@ -377,7 +481,8 @@ This project demonstrates:
 3. ✅ How BDD can pass with terrible code quality
 4. ✅ How bad code makes testing harder
 5. ✅ How to use Semgrep to find security vulnerabilities
-6. ✅ Why you need multiple quality assurance techniques
+6. ✅ How to integrate Sentry for error monitoring and performance tracking
+7. ✅ Why you need multiple quality assurance techniques
 
 ## 🤝 Contributing
 
