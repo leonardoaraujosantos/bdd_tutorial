@@ -19,6 +19,4 @@ class Calculator:
     @staticmethod
     def divide(num1: float, num2: float) -> float:
         """Divide num1 by num2"""
-        if num2 == 0:
-            raise ValueError("Cannot divide by zero")
         return num1 / num2

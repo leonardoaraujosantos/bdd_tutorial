@@ -13,8 +13,7 @@ logger = logging.getLogger(__name__)
 sentry_dsn = os.getenv("SENTRY_DSN")
 if sentry_dsn:
     sentry_sdk.init(
-        dsn=sentry_dsn,
-        environment=os.getenv("SENTRY_ENVIRONMENT", "development"),
+         dsn="https://e27c4bdb5a00313d371d4d02eb4edc15@o4510103217963008.ingest.de.sentry.io/4510129111302224",
         # Add data like request headers and IP for users
         send_default_pii=True,
         # Set traces_sample_rate to 1.0 to capture 100% of transactions for tracing
@@ -65,12 +64,8 @@ async def multiply(request: OperationRequest):
 @app.post("/divide", response_model=OperationResponse)
 async def divide(request: OperationRequest):
     """Divide two numbers"""
-    try:
-        result = calculator.divide(request.num1, request.num2)
-        return OperationResponse(result=result, operation="division")
-    except ValueError as e:
-        logger.error(f"Division error: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=400, detail=str(e))
+    result = calculator.divide(request.num1, request.num2)
+    return OperationResponse(result=result, operation="division")
 
 
 @app.get("/sentry-debug")
