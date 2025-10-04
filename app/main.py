@@ -41,8 +41,5 @@ async def multiply(request: OperationRequest):
 @app.post("/divide", response_model=OperationResponse)
 async def divide(request: OperationRequest):
     """Divide two numbers"""
-    try:
-        result = calculator.divide(request.num1, request.num2)
-        return OperationResponse(result=result, operation="division")
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    result = calculator.divide(request.num1, request.num2)
+    return OperationResponse(result=result, operation="division")
